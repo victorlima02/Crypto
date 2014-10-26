@@ -433,6 +433,14 @@ public class BitBuffer implements AutoCloseable, Cloneable, Serializable {
     public byte[] toByteArray() {
         return getBitSet().toByteArray();
     }
+    
+    public byte[] toByteArray(int n) {
+        byte data[] = new byte[n];
+        byte ori[] = getBitSet().toByteArray();
+        System.arraycopy(ori, 0, data, 0,ori.length);
+        clearKeyBuffer(ori);
+        return data;
+    }
 
     public long[] toLongArray() {
         return getBitSet().toLongArray();

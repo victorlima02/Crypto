@@ -196,7 +196,7 @@ public abstract class FeistelCipher extends Cipher {
                     readBuffer.xor(cipherBlock);
                     cipherBlock.close();
                     cipherBlock = encryptBlock(readBuffer, keyBuffer);
-                    output.write(cipherBlock.toByteArray());
+                    output.write(cipherBlock.toByteArray(8));
                 }
                 bytesRead = message.read(buffer);
             }
@@ -258,7 +258,7 @@ public abstract class FeistelCipher extends Cipher {
                         unPad(plainText);
                     }
 
-                    output.write(plainText.toByteArray());
+                    output.write(plainText.toByteArray(8));
                     plainText.close();
                     plainText = readBuffer;
                 }
@@ -406,7 +406,7 @@ public abstract class FeistelCipher extends Cipher {
 
             int count = 0;
 
-            for (int i = 7; i > 1; i--) {
+            for (int i = 7; i > 0; i--) {
                 if (data[i] == n) {
                     count++;
                 }
