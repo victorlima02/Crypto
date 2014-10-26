@@ -434,6 +434,21 @@ public class BitBuffer implements AutoCloseable, Cloneable, Serializable {
         return getBitSet().toByteArray();
     }
 
+    /**
+     * Return a byte[] representation for the bits, with size n.
+     * 
+     * @since 1.0
+     * @param n The size desired for the byte[] representation.
+     * @return The byte[] representation.
+     */
+    public byte[] toByteArray(int n) {
+        byte data[] = new byte[n];
+        byte ori[] = getBitSet().toByteArray();
+        System.arraycopy(ori, 0, data, 0, ori.length);
+        clearKeyBuffer(ori);
+        return data;
+    }
+
     public long[] toLongArray() {
         return getBitSet().toLongArray();
     }
@@ -520,7 +535,7 @@ public class BitBuffer implements AutoCloseable, Cloneable, Serializable {
         try (BitBuffer left = get(0, ringSize - nBits); BitBuffer right = get(ringSize - nBits, ringSize)) {
 
             overwrite(0, right, nBits);
-            overwrite( nBits, left, ringSize - nBits);
+            overwrite(nBits, left, ringSize - nBits);
         }
     }
 
@@ -623,18 +638,18 @@ public class BitBuffer implements AutoCloseable, Cloneable, Serializable {
     public static final void clearKeyBuffer(final char[] key) {
         Arrays.fill(key, '\u0000');
     }
-    
+
     /**
      * Write the bytes on the specified array.
-     * 
+     *
      * @since 1.0
-     * @param dest 
+     * @param dest
      */
-    public void write(byte[] dest){
+    public void write(byte[] dest) {
         byte[] data = toByteArray();
-        
+
         System.arraycopy(data, 0, dest, 0, Math.min(dest.length, data.length));
-        
+
         clearKeyBuffer(data);
     }
 }

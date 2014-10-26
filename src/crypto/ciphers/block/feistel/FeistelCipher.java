@@ -196,7 +196,7 @@ public abstract class FeistelCipher extends Cipher {
                     readBuffer.xor(cipherBlock);
                     cipherBlock.close();
                     cipherBlock = encryptBlock(readBuffer, keyBuffer);
-                    output.write(cipherBlock.toByteArray());
+                    output.write(cipherBlock.toByteArray(8));
                 }
                 bytesRead = message.read(buffer);
             }
@@ -258,7 +258,7 @@ public abstract class FeistelCipher extends Cipher {
                         unPad(plainText);
                     }
 
-                    output.write(plainText.toByteArray());
+                    output.write(plainText.toByteArray(8));
                     plainText.close();
                     plainText = readBuffer;
                 }
@@ -401,12 +401,12 @@ public abstract class FeistelCipher extends Cipher {
     protected void unPad(BitBuffer buffer) {
         byte[] data = buffer.toByteArray();
 
-        if (data[7] < 8) {
+        if (data[7] < 8 && data[7] > 0) {
             byte n = data[7];
 
             int count = 0;
 
-            for (int i = 7; i > 1; i--) {
+            for (int i = 7; i > 0; i--) {
                 if (data[i] == n) {
                     count++;
                 }
@@ -466,7 +466,8 @@ public abstract class FeistelCipher extends Cipher {
      * @param file File to read.
      * @throws IOException
      * <ul>
-     * <li>If it fails to open, reads or write in any of the files passed as argument.</li>
+     * <li>If it fails to open, reads or write in any of the files passed as
+     * argument.</li>
      * </ul>
      */
     protected BitBuffer readIV(InputStream file) throws IOException {
