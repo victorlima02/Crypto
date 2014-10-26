@@ -245,20 +245,21 @@ public abstract class FeistelCipher extends Cipher {
             plainText = readIV(message);
 
             int bytesRead = message.read(buffer);
+            int bytesAfterUnpadding = 0;
 
             while (bytesRead > 0) {
 
                 readBuffer = BitBuffer.valueOf(buffer);
-                bytesRead = message.read(buffer);
+                bytesAfterUnpadding = bytesRead = message.read(buffer);
 
                 try (BitBuffer decrypted = decryptBlock(readBuffer, keyBuffer)) {
                     plainText.xor(decrypted);
 
                     if (bytesRead <= 0) {
-                        unPad(plainText);
+                        bytesAfterUnpadding = unPad(plainText);
                     }
 
-                    output.write(plainText.toByteArray(8));
+                    output.write(plainText.toByteArray(bytesAfterUnpadding));
                     plainText.close();
                     plainText = readBuffer;
                 }
@@ -397,8 +398,9 @@ public abstract class FeistelCipher extends Cipher {
      *
      * @since 1.0
      * @param buffer Buffer to be unpadded.
+     * @return size of the data after the operation in bytes.
      */
-    protected void unPad(BitBuffer buffer) {
+    protected int unPad(BitBuffer buffer) {
         byte[] data = buffer.toByteArray();
 
         if (data[7] < 8 && data[7] > 0) {
@@ -420,10 +422,13 @@ public abstract class FeistelCipher extends Cipher {
                     buffer.replace(newBuffer);
                     BitBuffer.clearKeyBuffer(newData);
                 }
+                BitBuffer.clearKeyBuffer(data);
+                return newData.length;
             }
         }
-
         BitBuffer.clearKeyBuffer(data);
+
+        return 8;
     }
 
     /**
