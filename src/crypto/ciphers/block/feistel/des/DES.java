@@ -30,6 +30,7 @@ import crypto.ciphers.block.feistel.FeistelCipher;
 import crypto.util.BitBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 
 /**
  * DES is a symmetric block cipher based on Feistel structure.
@@ -45,34 +46,34 @@ import java.security.NoSuchAlgorithmException;
  * @version 1.0
  */
 public class DES extends FeistelCipher {
-
+    
     private static final int N_ROUNDS = 16;
     private static final int BLOCK_SIZE = 64;
     private static final int KEY_SIZE = 56;
-
+    
     public static enum Modes {
-
+        
         CBC
     };
-
+    
     public DES() {
         super(N_ROUNDS, BLOCK_SIZE);
     }
-
+    
     @Override
     protected void initialPermutation(BitBuffer cipherText) {
         DESPermutation.IP.permute(cipherText);
     }
-
+    
     @Override
     protected BitBuffer getRoundKey(BitBuffer keyBuffer, int round) {
         if (round == 0) {
             DESPermutation.PC1.permute(keyBuffer);
         }
-
+        
         try (BitBuffer left = keyBuffer.get(0, KEY_SIZE / 2);
                 BitBuffer right = keyBuffer.get(KEY_SIZE / 2, KEY_SIZE)) {
-
+            
             switch (round) {
                 case 0:
                 case 1:
@@ -85,26 +86,26 @@ public class DES extends FeistelCipher {
                     left.shiftCyclicalLeft(2, KEY_SIZE / 2);
                     right.shiftCyclicalLeft(2, KEY_SIZE / 2);
             }
-
+            
             keyBuffer.overwrite(0, left, KEY_SIZE / 2);
             keyBuffer.overwrite(KEY_SIZE / 2, right, KEY_SIZE / 2);
-
+            
             BitBuffer roundKey = (BitBuffer) keyBuffer.clone();
             DESPermutation.PC2.permute(roundKey);
-
+            
             return roundKey;
         }
     }
-
+    
     @Override
     protected BitBuffer getRoundKeyDescryption(BitBuffer keyBuffer, int round) {
         if (round == 0) {
             DESPermutation.PC1.permute(keyBuffer);
         }
-
+        
         try (BitBuffer left = keyBuffer.get(0, KEY_SIZE / 2);
                 BitBuffer right = keyBuffer.get(KEY_SIZE / 2, KEY_SIZE)) {
-
+            
             switch (round) {
                 case 0:
                     break;
@@ -118,51 +119,52 @@ public class DES extends FeistelCipher {
                     left.shiftCyclicalRight(2, KEY_SIZE / 2);
                     right.shiftCyclicalRight(2, KEY_SIZE / 2);
             }
-
+            
             keyBuffer.overwrite(0, left, KEY_SIZE / 2);
             keyBuffer.overwrite(KEY_SIZE / 2, right, KEY_SIZE / 2);
-
+            
             BitBuffer roundKey = (BitBuffer) keyBuffer.clone();
             DESPermutation.PC2.permute(roundKey);
-
+            
             return roundKey;
         }
     }
-
+    
     @Override
     protected BitBuffer fFunction(final BitBuffer right, final BitBuffer roundKey
     ) {
-
+        
         try (BitBuffer fBuffer = (BitBuffer) right.clone()) {
-
+            
             DESPermutation.eBox.permute(fBuffer);
-
+            
             fBuffer.xor(roundKey);
-
+            
             BitBuffer sBuffer = new BitBuffer(BLOCK_SIZE / 2);
-
+            
             for (int i = 0; i < SBoxes.getNSboxes(); i++) {
-
+                
                 try (BitBuffer sboxBits = fBuffer.get(i * SBox.INPUT_SIZE, i * SBox.INPUT_SIZE + SBox.INPUT_SIZE)) {
-
+                    
                     SBoxes.get(i).replace(sboxBits);
-
+                    
                     sBuffer.overwrite(i * SBox.OUTPUT_SIZE, sboxBits);
                 }
             }
-
+            
             DESPermutation.round.permute(sBuffer);
             return sBuffer;
         }
     }
-
+    
     @Override
     protected void finalPermutation(BitBuffer cipherText) {
         DESPermutation.inverseIP.permute(cipherText);
     }
 
     /**
-     * Generates a byte array containing the key extracted from a MD5 hash for the password.
+     * Generates a byte array containing the key extracted from a MD5 hash for
+     * the password.
      *
      * @since 1.0
      * @param password Input for the hash function.
@@ -173,15 +175,39 @@ public class DES extends FeistelCipher {
      * </ul>
      */
     public static byte[] genkey(byte[] password) throws NoSuchAlgorithmException {
-
+        
         MessageDigest messageDigest = MessageDigest.getInstance("MD5");
         messageDigest.update(password, 0, password.length);
-
+        
         byte buffer[] = new byte[8];
-
+        
         System.arraycopy(messageDigest.digest(), 0, buffer, 0, 8);
-
+        
         return buffer;
+    }
 
+    /**
+     * Generates a byte array containing the key extracted from a MD5 hash for a
+     * random number.
+     *
+     * @since 1.0
+     * @return Generated key.
+     * @throws NoSuchAlgorithmException
+     * <ul>
+     * <li>If it can not find the "MD5" algorithm.</li>
+     * </ul>
+     */
+    public static byte[] genkey() throws NoSuchAlgorithmException {
+        
+        byte[] password = new byte[8];
+        (new SecureRandom()).nextBytes(password);
+        MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+        messageDigest.update(password, 0, password.length);
+        
+        byte buffer[] = new byte[8];
+        
+        System.arraycopy(messageDigest.digest(), 0, buffer, 0, 8);
+        BitBuffer.clearKeyBuffer(password);
+        return buffer;
     }
 }

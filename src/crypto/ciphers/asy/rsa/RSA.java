@@ -111,7 +111,7 @@ public class RSA {
 
             tmp = new BigInteger(numBits * 2, generator);
 
-        } while ((tmp.compareTo(phi) > 0) && !(tmp.gcd(phi).equals(BigInteger.ONE)));
+        } while ((tmp.compareTo(phi) < 0) && !(tmp.gcd(phi).equals(BigInteger.ONE)));
 
         e = tmp;
         d = e.modInverse(phi);
