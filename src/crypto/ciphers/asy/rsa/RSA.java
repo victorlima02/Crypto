@@ -132,6 +132,15 @@ public class RSA {
     /**
      * Encrypts a message for someone else, using their public key.
      *
+     * <p>
+     * This function will not correctly work if the first byte if non-positive.
+     * Protocols using this function should be aware of this and implement a
+     * protocol dependent correction; e.i, invert the first byte on the input
+     * and after on the decrypted message with some signaling - padding can also
+     * be used.
+     * </p>
+     *
+     * @since 1.0
      * @param publicKeyPair Pair (n,e)
      * @param msg
      * @return encrypted message
