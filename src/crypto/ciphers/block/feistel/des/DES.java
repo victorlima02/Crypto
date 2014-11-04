@@ -47,9 +47,9 @@ import java.security.SecureRandom;
  */
 public class DES extends FeistelCipher {
     
-    private static final int N_ROUNDS = 16;
-    private static final int BLOCK_SIZE = 64;
-    private static final int KEY_SIZE = 56;
+    public static final int N_ROUNDS = 16;
+    public static final int BLOCK_SIZE = 64;
+    public static final int KEY_SIZE = 56;
     
     public static enum Modes {
         

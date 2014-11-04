@@ -33,7 +33,7 @@ import javafx.util.Pair;
 
 /**
  * Class to perform RSA computations.
- * 
+ *
  * @author Victor de Lima Soares
  * @version 1.0
  */
@@ -47,7 +47,7 @@ public class RSA {
      *
      * @since 1.0
      */
-    private final BigInteger d;
+    private BigInteger d;
 
     /**
      * Public key component: e.
@@ -69,11 +69,11 @@ public class RSA {
 
     /**
      * Modulus argument to be used for encryption and decryption.
-     * 
+     *
      * <p>
      * phi=(p-1)*(q-1)
      * </p>
-     * 
+     *
      * @since 1.0
      */
     private final BigInteger phi;
@@ -87,7 +87,7 @@ public class RSA {
 
     /**
      * Create a new RSA object with random primes (probably primes).
-     * 
+     *
      * <p>
      * This method will generate all parameters to execute the RSA algorithm,
      * including the computation for the private and public keys.
@@ -111,10 +111,11 @@ public class RSA {
 
             tmp = new BigInteger(numBits * 2, generator);
 
-        } while ((tmp.compareTo(phi) < 0) && !(tmp.gcd(phi).equals(BigInteger.ONE)));
+        } while ((tmp.compareTo(phi) > 0) || !(tmp.gcd(phi).equals(BigInteger.ONE)));
 
         e = tmp;
         d = e.modInverse(phi);
+
     }
 
     /**
@@ -125,9 +126,31 @@ public class RSA {
      * @return encrypted message
      */
     public static BigInteger encrypt(Pair<BigInteger, BigInteger> publicKeyPair, String msg) {
+        return encrypt(publicKeyPair, StringToBigInteger(msg));
+    }
+
+    /**
+     * Encrypts a message for someone else, using their public key.
+     *
+     * @param publicKeyPair Pair (n,e)
+     * @param msg
+     * @return encrypted message
+     */
+    public static BigInteger encrypt(Pair<BigInteger, BigInteger> publicKeyPair, byte[] msg) {
+        return encrypt(publicKeyPair, new BigInteger(msg));
+    }
+
+    /**
+     * Encrypts a message for someone else, using their public key.
+     *
+     * @param publicKeyPair Pair (n,e)
+     * @param msg
+     * @return encrypted message
+     */
+    public static BigInteger encrypt(Pair<BigInteger, BigInteger> publicKeyPair, BigInteger msg) {
         BigInteger n = publicKeyPair.getKey();
         BigInteger e = publicKeyPair.getValue();
-        return StringToBigInteger(msg).modPow(e, n);
+        return msg.modPow(e, n);
     }
 
     /**
@@ -137,8 +160,8 @@ public class RSA {
      * @param msg Message to be decrypted.
      * @return Decrypted message.
      */
-    public String decrypt(BigInteger msg) {
-        return BigIntegerToString(msg.modPow(d, phi));
+    public BigInteger decrypt(BigInteger msg) {
+        return msg.modPow(d, n);
     }
 
     /**
@@ -161,6 +184,17 @@ public class RSA {
      */
     public static String BigIntegerToString(BigInteger msg) {
         return new String(msg.toByteArray(), CHARSET);
+    }
+
+    /**
+     * Converts a BigInteger into a byte array.
+     *
+     * @since 1.0
+     * @param msg BigInteger to be converted.
+     * @return Byte array.
+     */
+    public static byte[] bigIntegerToByteArray(BigInteger msg) {
+        return msg.toByteArray();
     }
 
     /**
