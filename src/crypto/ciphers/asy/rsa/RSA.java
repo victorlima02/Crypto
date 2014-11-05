@@ -242,4 +242,14 @@ public class RSA {
     public Pair<BigInteger, BigInteger> getPublicKeyPair() {
         return new Pair<>(n, e);
     }
+
+    /**
+     * Return the (n,private key) or (n,d) private key pair.
+     *
+     * @since 1.0
+     * @return (n,d)
+     */
+    public Pair<BigInteger, BigInteger> getPrivateKeyPair() {
+        return new Pair<>(n, d);
+    }
 }
